@@ -1,14 +1,14 @@
 // Bump the version number to force phones to clear their old cache
-const CACHE_NAME = 'rubbersoul-v3';
+const CACHE_NAME = 'rubbersoul-cache-v26.04';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './icon-192.png', // Brought back from your old code
+  './icon-512.png'  // Brought back from your old code
 ];
 
-// Install the service worker and cache the files
+// Install the service worker and cache the core files
 self.addEventListener('install', (event) => {
   self.skipWaiting(); // Force the waiting service worker to become the active service worker
   event.waitUntil(
@@ -31,9 +31,11 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // Claim control immediately without requiring a browser refresh
+  self.clients.claim(); 
 });
 
-// Network-First Strategy
+// Network-First Strategy (restored from your original code)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request).then((response) => {
