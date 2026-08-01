@@ -2,28 +2,24 @@
 <html lang="en">
 <head>
     <script>
-    // --- DIAGNOSTIC MIGRATION INTERCEPTOR ---
+    // --- SAFE MIGRATION INTERCEPTOR ---
     (function() {
         const hash = window.location.hash;
         if (hash && hash.includes('migrate=')) {
-            alert("STEP 1: Migration payload detected in URL!");
             try {
                 const LZString={decompressFromEncodedURIComponent:function(a){return null==a?"":""==a?null:LZString._decompress(a.length,32,function(b){return LZString._getBaseValue(LZString._keyStrUri,a.charAt(b))})},_keyStrUri:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",_getBaseValue:function(a,b){if(!LZString._baseReverseDic)LZString._baseReverseDic={};if(!LZString._baseReverseDic[a]){LZString._baseReverseDic[a]={};for(var c=0;c<a.length;c++)LZString._baseReverseDic[a][a.charAt(c)]=c}return LZString._baseReverseDic[a][b]},_decompress:function(a,b,c){var d,e,f,g,h,i,j,k=[],l=4,m=4,n=3,o="",p=[],q={val:c(0),position:b,index:1};for(d=0;d<3;d+=1)k[d]=d;for(f=0,h=Math.pow(2,2),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;switch(f){case 0:for(f=0,h=Math.pow(2,8),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;j=String.fromCharCode(f);break;case 1:for(f=0,h=Math.pow(2,16),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;j=String.fromCharCode(f);break;case 2:return""}for(k[3]=j,e=j,p.push(j);;){if(q.index>a)return"";for(f=0,h=Math.pow(2,n),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;switch(j=f){case 0:for(f=0,h=Math.pow(2,8),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;k[m++]=String.fromCharCode(f),j=m-1,l--;break;case 1:for(f=0,h=Math.pow(2,16),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;k[m++]=String.fromCharCode(f),j=m-1,l--;break;case 2:return p.join("")}if(0==l&&(l=Math.pow(2,n),n++),k[j])o=k[j];else{if(j!==m)return null;o=e+e.charAt(0)}p.push(o),k[m++]=e+o.charAt(0),l--,e=o,0==l&&(l=Math.pow(2,n),n++)}}};
 
-                const rawPayload = hash.split('migrate=')[1];
+                // Extract and decode the raw payload from the URL
+                const rawPayload = decodeURIComponent(hash.split('migrate=')[1]);
                 const decompressed = LZString.decompressFromEncodedURIComponent(rawPayload);
 
-                if (decompressed && decompressed.length > 0) {
-                    alert("STEP 2: Data successfully decompressed!\nLength: " + decompressed.length + " characters.");
+                // Ensure it's valid JSON before saving
+                if (decompressed && decompressed.startsWith('{')) {
                     localStorage.setItem('RubberSoul_v26.03', decompressed);
-                    alert("STEP 3: Saved to LocalStorage under 'RubberSoul_v26.03'. Reloading page...");
                     window.history.replaceState(null, '', window.location.pathname);
-                    window.location.reload();
-                } else {
-                    alert("ERROR: Decompression returned empty or null data.");
                 }
             } catch(err) {
-                alert("ERROR during decompression: " + err.message);
+                console.error("Migration error:", err);
             }
         }
     })();
