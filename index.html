@@ -16,14 +16,14 @@
                 // Ensure it's valid JSON before saving
                 if (decompressed && decompressed.startsWith('{')) {
                     localStorage.setItem('RubberSoul_v26.03', decompressed);
-                    window.history.replaceState(null, '', window.location.pathname);
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 }
             } catch(err) {
                 console.error("Migration error:", err);
             }
         }
     })();
-</script>
+    </script>
         <meta charset="UTF-8">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1213,7 +1213,20 @@
             
             load: () => {
                 let localData = null;
-                const saved = localStorage.getItem(CONFIG.storageKey);
+                let saved = localStorage.getItem(CONFIG.storageKey);
+
+                // Fallback: If CONFIG.storageKey has no data, check 'RubberSoul_v26.03'
+                if (!saved) {
+                    saved = localStorage.getItem('RubberSoul_v26.03');
+                    if (saved) {
+                        try {
+                            localStorage.setItem(CONFIG.storageKey, saved);
+                        } catch(e) {
+                            console.error("Failed to copy migrated data:", e);
+                        }
+                    }
+                }
+
                 if (saved) { try { localData = JSON.parse(saved); } catch(e) {} }
                 
                 if (localData) {
@@ -1223,7 +1236,7 @@
                     STATE.settings = { ...{ fourColor: false, highContrast: false, showHonors: true, keepAwake: true, trackDeclarer: false }, ...savedSettings };
                 }
 
-                if (window.location.hash && window.location.hash.length > 1) {
+                if (window.location.hash && window.location.hash.length > 1 && !window.location.hash.includes('migrate=')) {
                     const hasLocalGame = (STATE.archive && STATE.archive.length > 0) || (STATE.hands && STATE.hands.length > 0) || (STATE.names && STATE.names.we1);
                     let archiveName = "";
 
