@@ -1215,14 +1215,18 @@
                 let localData = null;
                 let saved = localStorage.getItem(CONFIG.storageKey);
 
-                // Fallback: If CONFIG.storageKey has no data, check 'RubberSoul_v26.03'
+                // Fallback 1: Scan for ANY key containing 'rubbersoul' if primary key is missing
                 if (!saved) {
-                    saved = localStorage.getItem('RubberSoul_v26.03');
-                    if (saved) {
-                        try {
-                            localStorage.setItem(CONFIG.storageKey, saved);
-                        } catch(e) {
-                            console.error("Failed to copy migrated data:", e);
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.toLowerCase().includes('rubbersoul')) {
+                            saved = localStorage.getItem(key);
+                            if (saved) {
+                                try {
+                                    localStorage.setItem(CONFIG.storageKey, saved);
+                                } catch(e) {}
+                                break;
+                            }
                         }
                     }
                 }
@@ -1234,6 +1238,18 @@
                     STATE = { ...STATE, ...localData };
                     if (!STATE.vault) STATE.vault = [];
                     STATE.settings = { ...{ fourColor: false, highContrast: false, showHonors: true, keepAwake: true, trackDeclarer: false }, ...savedSettings };
+
+                    // Auto-Migrate: Convert old 'archive' data into a Vault entry if Vault is empty
+                    if (STATE.vault.length === 0 && STATE.archive && STATE.archive.length > 0) {
+                        STATE.vault.push({
+                            id: new Date().getTime(),
+                            date: getTimestamp(),
+                            name: STATE.sessionName || "Migrated Session",
+                            players: JSON.parse(JSON.stringify(STATE.players || {})),
+                            archive: JSON.parse(JSON.stringify(STATE.archive))
+                        });
+                        Storage.save();
+                    }
                 }
 
                 if (window.location.hash && window.location.hash.length > 1 && !window.location.hash.includes('migrate=')) {
@@ -1454,7 +1470,7 @@
                         </tr>
                         <tr>
                             <td><input type="search" id="p2" value="${we2 || ''}" size="10" tabindex="2" ${listAttr}></td>
-                            <td><input type="search" id="p4" value="${they2 || ''}" size="10" tabindex="4" ${listAttr}></td>
+                            <td><input type="search" id="p4" value="${they4 || ''}" size="10" tabindex="4" ${listAttr}></td>
                         </tr>
                     </table>
                     <div style="margin-top:15px;"><button type="button" id="start-match-btn" tabindex="5" data-action="startMatch" disabled>OK</button></div>
