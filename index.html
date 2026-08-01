@@ -13,9 +13,23 @@
                 const rawPayload = decodeURIComponent(hash.split('migrate=')[1]);
                 const decompressed = LZString.decompressFromEncodedURIComponent(rawPayload);
 
-                // Ensure it's valid JSON before saving
                 if (decompressed && decompressed.startsWith('{')) {
-                    localStorage.setItem('RubberSoul_v26.03', decompressed);
+                    let parsed = JSON.parse(decompressed);
+
+                    // Ensure vault exists and convert archive/hands to vault if vault is empty
+                    if (!parsed.vault) parsed.vault = [];
+                    if (parsed.vault.length === 0 && ((parsed.archive && parsed.archive.length > 0) || (parsed.hands && parsed.hands.length > 0))) {
+                        const timeStr = new Date().toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        parsed.vault.push({
+                            id: new Date().getTime(),
+                            date: timeStr,
+                            name: parsed.sessionName || "Migrated Session",
+                            players: parsed.players || {},
+                            archive: parsed.archive || []
+                        });
+                    }
+
+                    localStorage.setItem('RubberSoul_v26.03', JSON.stringify(parsed));
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 }
             } catch(err) {
@@ -177,7 +191,7 @@
         body.high-contrast .tool-link, body.high-contrast #menu-toggle {
             border: 2px solid #000 !important; color: #000 !important; font-weight: bold;
         }
-        body.high-contrast .live-contract { border-bottom-color: #000; }
+        body.high-contrast .live-contrast { border-bottom-color: #000; }
 
         /* --- SMART LAYOUT: Side-by-Side & Wrap --- */
         .main-container { 
@@ -1037,8 +1051,6 @@
                 }
                 let html = '';
                 STATE.vault.forEach((v, i) => {
-                    
-                    // 1. Cleanly separate the title and the date so neither gets cut off
                     let titleSection = '';
                     if (v.name) {
                         titleSection = `
@@ -1051,7 +1063,6 @@
                         `;
                     }
 
-                    // 2. Generate the sleek, tabular score grid (matching the mobile APK)
                     let scoresHtml = `<div style="border-top: 1px solid #eee; padding-top: 8px; margin-top: 4px;">`;
                     for (let p in v.players) {
                         const s = v.players[p];
@@ -1065,7 +1076,6 @@
                     }
                     scoresHtml += `</div>`;
 
-                    // 3. Render the final card
                     html += `<div style="padding: 15px; border: 1px solid #ccc; margin-bottom: 12px; border-radius: 8px; cursor: pointer; background: #fff; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" data-action="viewVaultItem" data-index="${i}">
                         ${titleSection}
                         ${scoresHtml}
@@ -1135,7 +1145,6 @@
                 UI.get('rename-btn').hidden = isBlankSlate;
                 UI.get('reset-btn').hidden = isBlankSlate;
                 
-                // Always expose the menu so users can access History, Settings, and About at any time
                 const navLeft = document.querySelector('.nav-left');
                 if (navLeft) navLeft.hidden = false;
                 
@@ -1200,7 +1209,6 @@
                 const cleanArchive = STATE.archive.map(rub => ({ n: [rub.names.we1, rub.names.we2, rub.names.they1, rub.names.they2], l: Compressor.packLog(rub.hands) }));
                 const packedActive = Compressor.packLog(STATE.hands);
                 
-                // v5 Logic (LZ Compressed) - Appending Name and Timestamp for backwards compatibility
                 const sessionDate = new Date().getTime();
                 const minified = [5, namesArr, cleanArchive, packedActive, STATE.sessionName || "", sessionDate]; 
                 const payload = LZString.compressToEncodedURIComponent(JSON.stringify(minified));
@@ -1239,14 +1247,14 @@
                     if (!STATE.vault) STATE.vault = [];
                     STATE.settings = { ...{ fourColor: false, highContrast: false, showHonors: true, keepAwake: true, trackDeclarer: false }, ...savedSettings };
 
-                    // Auto-Migrate: Convert old 'archive' data into a Vault entry if Vault is empty
-                    if (STATE.vault.length === 0 && STATE.archive && STATE.archive.length > 0) {
+                    // Auto-Migrate: Convert old 'archive' or 'hands' data into a Vault entry if Vault is empty
+                    if (STATE.vault.length === 0 && ((STATE.archive && STATE.archive.length > 0) || (STATE.hands && STATE.hands.length > 0))) {
                         STATE.vault.push({
                             id: new Date().getTime(),
                             date: getTimestamp(),
                             name: STATE.sessionName || "Migrated Session",
                             players: JSON.parse(JSON.stringify(STATE.players || {})),
-                            archive: JSON.parse(JSON.stringify(STATE.archive))
+                            archive: JSON.parse(JSON.stringify(STATE.archive || []))
                         });
                         Storage.save();
                     }
@@ -1266,7 +1274,6 @@
                         }
                         
                         if (decoded && (decoded[0] === 4 || decoded[0] === 5)) {
-                            // Automatically stash the current session without asking
                             if (hasLocalGame) {
                                 archiveName = STATE.sessionName || getTimestamp();
                                 Game.archiveSessionToVault();
@@ -1284,7 +1291,6 @@
                             });
                             initPlayers(decoded[1]);
                             
-                            // Safely extract the optional name if it was included in the link
                             let loadedName = "";
                             if (decoded.length > 4) loadedName = decoded[4] || "";
 
@@ -1303,7 +1309,6 @@
                             window.history.replaceState(null, '', window.location.pathname + window.location.search);
                             Storage.save(); 
                             
-                            // Trigger the friendly notification!
                             if (hasLocalGame) {
                                 setTimeout(() => {
                                     alert(`Your previous session has been safely archived as "${archiveName}". Open your History to resume it at any time.`);
@@ -1355,7 +1360,6 @@
             },
 
             archiveSessionToVault: () => {
-                // Auto-close active rubber if there is progress
                 if (STATE.hands.length > 0 || STATE.ledger.we.games > 0 || STATE.ledger.they.games > 0) {
                     const weGames = STATE.ledger.we.games;
                     const theyGames = STATE.ledger.they.games;
@@ -1384,7 +1388,6 @@
                     }
                     STATE.archive.push(JSON.parse(JSON.stringify({ rubberNum: STATE.rubberNum, names: STATE.names, hands: STATE.hands })));
                 } else if (STATE.names.we1) {
-                    // Save stub scorecard if names exist but no hands played
                     STATE.archive.push(JSON.parse(JSON.stringify({ rubberNum: STATE.rubberNum, names: STATE.names, hands: [] })));
                 }
 
@@ -1399,7 +1402,6 @@
                     });
                 }
 
-                // Reset Active Session while preserving vault/settings
                 STATE.players = {}; STATE.names = { we1: "", we2: "", they1: "", they2: "" }; STATE.allNames = [];
                 STATE.sessionName = "";
                 STATE.rubberNum = 1; STATE.hands = []; STATE.ledger = { we: { games: 0, partial: 0 }, they: { games: 0, partial: 0 } };
@@ -1613,15 +1615,12 @@
                 
                 let weBonus = 0; let theyBonus = 0;
 
-                // Rule 1: Only one game completed (300 pts)
                 if (weGames === 1 && theyGames === 0) weBonus += 300;
                 else if (theyGames === 1 && weGames === 0) theyBonus += 300;
 
-                // Rule 2: Only one side has a partscore (100 pts)
                 if (wePart > 0 && theyPart === 0) weBonus += 100;
                 else if (theyPart > 0 && wePart === 0) theyBonus += 100;
 
-                // Auto-apply official rules without asking
                 if (weBonus > 0) STATE.hands.push({ s: 'we', t: 'rub', sc: weBonus });
                 if (theyBonus > 0) STATE.hands.push({ s: 'they', t: 'rub', sc: theyBonus });
                 
@@ -1691,7 +1690,6 @@
                         const rIdx = UI.get("vaultdetailpopup").dataset.index;
                         const targetSession = STATE.vault[rIdx];
 
-                        // 1. Stash current session into Vault
                         if (STATE.hands.length > 0 || STATE.archive.length > 0 || STATE.names.we1) {
                             let stArchive = JSON.parse(JSON.stringify(STATE.archive));
                             let stPlayers = JSON.parse(JSON.stringify(STATE.players));
@@ -1724,7 +1722,6 @@
                                 }
                                 stArchive.push({ rubberNum: STATE.rubberNum, names: STATE.names, hands: h });
                             } else if (STATE.names.we1) {
-                                // Save stub scorecard if names exist but no hands played
                                 stArchive.push({ rubberNum: STATE.rubberNum, names: STATE.names, hands: [] });
                             }
                             
@@ -1739,10 +1736,8 @@
                             }
                         }
 
-                        // 2. Remove resumed session from vault
                         STATE.vault = STATE.vault.filter(v => v !== targetSession);
 
-                        // 3. Load targetSession into Active State
                         STATE.archive = JSON.parse(JSON.stringify(targetSession.archive));
                         STATE.players = JSON.parse(JSON.stringify(targetSession.players));
                         STATE.sessionName = targetSession.name || "";
@@ -1759,7 +1754,6 @@
                             STATE.names = { we1: "", we2: "", they1: "", they2: "" };
                         }
 
-                        // 4. Update UI
                         Storage.save(true);
                         UI.hide("vaultdetailpopup");
                         UI.resetBiddingUI(true);
@@ -1801,7 +1795,6 @@
                     const sIdx = UI.get("vaultdetailpopup").dataset.index;
                     const session = STATE.vault[sIdx];
                     const cleanArch = session.archive.map(rub => ({ n: [rub.names.we1, rub.names.we2, rub.names.they1, rub.names.they2], l: Compressor.packLog(rub.hands) }));
-                    // Bundle the vault session's specific name and original timestamp
                     const minified = [5, ["", "", "", ""], cleanArch, [], session.name || "", session.id || new Date().getTime()]; 
                     const url = window.location.href.split('#')[0] + '#' + LZString.compressToEncodedURIComponent(JSON.stringify(minified));
                     
@@ -1848,7 +1841,6 @@
                 case 'startMatch': 
                     if (!trigger.disabled) Game.startMatch(); 
                     break;
-                // Trigger the browser's install prompt
                 case 'installApp': 
                     if (deferredPrompt) {
                         deferredPrompt.prompt();
@@ -1868,7 +1860,7 @@
                     break;
                 case 'setSide': 
                     STATE.bid.side = trigger.dataset.side; 
-                    STATE.bid.declarer = null; // Clear individual if they switch to side midway
+                    STATE.bid.declarer = null;
                     UI.renderBiddingBox(); 
                     break;
                 case 'setDeclarer': 
@@ -1903,7 +1895,6 @@
             }
         });
         
-        // replaces mailto tag on hover to evade raw html scrapers
         document.addEventListener('mouseover', function(e) {
             const trigger = e.target.closest('[data-action="emailAuthor"]');
             if (trigger && trigger.getAttribute('href') === '#') {
@@ -1934,7 +1925,6 @@
             document.getElementById('year').textContent = new Date().getFullYear();
             Storage.load();
 
-            // Check for Home Screen Shortcuts triggers
             const params = new URLSearchParams(window.location.search);
             const action = params.get('action');
             if (action === 'new') {
@@ -1942,7 +1932,6 @@
             } else if (action === 'settings') {
                 setTimeout(() => { UI.showSettings(); }, 100);
             }
-            // Clean up the URL so reloads don't trigger the shortcut again
             if (action) {
                 window.history.replaceState(null, '', window.location.pathname + window.location.hash);
             }
