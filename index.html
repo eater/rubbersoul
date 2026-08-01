@@ -66,7 +66,7 @@
                 const decodedPayload = decodeURIComponent(rawSegment);
                 const decompressed = LZString.decompressFromEncodedURIComponent(decodedPayload);
 
-                // 1. Strict JSON Validation
+                // Strict JSON Validation
                 const parsed = JSON.parse(decompressed);
                 if (parsed && typeof parsed === 'object') {
                     const hasValidStructure = Array.isArray(parsed.vault) || Array.isArray(parsed.archive) || Array.isArray(parsed.hands);
@@ -1863,9 +1863,12 @@
 
                 case 'deleteVaultItem':
                     if(confirm("Permanently delete this session from history?")) {
-                        const dIdx = UI.get("vaultdetailpopup").dataset.index;
-                        STATE.vault.splice(dIdx, 1);
-                        Storage.save();
+                        const dIdx = parseInt(UI.get("vaultdetailpopup").dataset.index, 10);
+                        if (!isNaN(dIdx) && dIdx >= 0 && dIdx < STATE.vault.length) {
+                            STATE.vault.splice(dIdx, 1);
+                            Storage.save();
+                            UI.renderVaultList(); // Re-render the HTML list before returning
+                        }
                         UI.closeVaultDetail();
                     }
                     break;
