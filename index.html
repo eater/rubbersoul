@@ -1189,6 +1189,21 @@
             },
             
             load: () => {
+                // --- NEW MIGRATION INTERCEPTOR ---
+                if (window.location.hash && window.location.hash.startsWith('#migrate=')) {
+                    try {
+                        const payload = window.location.hash.substring(9);
+                        const decompressed = LZString.decompressFromEncodedURIComponent(payload);
+                        if (decompressed) {
+                            // Save the incoming data to the new domain's Local Storage!
+                            localStorage.setItem(CONFIG.storageKey, decompressed);
+                            // Clean the URL hash so it doesn't trigger the standard game-link loader below
+                            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                        }
+                    } catch(e) { console.error("Migration failed", e); }
+                }
+                // --- END MIGRATION INTERCEPTOR ---
+
                 let localData = null;
                 const saved = localStorage.getItem(CONFIG.storageKey);
                 if (saved) { try { localData = JSON.parse(saved); } catch(e) {} }
