@@ -2,26 +2,33 @@
 <html lang="en">
 <head>
     <script>
-    // --- SAFE MIGRATION INTERCEPTOR ---
-    (function() {
-        const hash = window.location.hash;
-        if (hash && hash.includes('migrate=')) {
-            try {
-                const LZString={decompressFromEncodedURIComponent:function(a){return null==a?"":""==a?null:LZString._decompress(a.length,32,function(b){return LZString._getBaseValue(LZString._keyStrUri,a.charAt(b))})},_keyStrUri:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",_getBaseValue:function(a,b){if(!LZString._baseReverseDic)LZString._baseReverseDic={};if(!LZString._baseReverseDic[a]){LZString._baseReverseDic[a]={};for(var c=0;c<a.length;c++)LZString._baseReverseDic[a][a.charAt(c)]=c}return LZString._baseReverseDic[a][b]},_decompress:function(a,b,c){var d,e,f,g,h,i,j,k=[],l=4,m=4,n=3,o="",p=[],q={val:c(0),position:b,index:1};for(d=0;d<3;d+=1)k[d]=d;for(f=0,h=Math.pow(2,2),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;switch(f){case 0:for(f=0,h=Math.pow(2,8),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;j=String.fromCharCode(f);break;case 1:for(f=0,h=Math.pow(2,16),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;j=String.fromCharCode(f);break;case 2:return""}for(k[3]=j,e=j,p.push(j);;){if(q.index>a)return"";for(f=0,h=Math.pow(2,n),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;switch(j=f){case 0:for(f=0,h=Math.pow(2,8),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;k[m++]=String.fromCharCode(f),j=m-1,l--;break;case 1:for(f=0,h=Math.pow(2,16),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;k[m++]=String.fromCharCode(f),j=m-1,l--;break;case 2:return p.join("")}if(0==l&&(l=Math.pow(2,n),n++),k[j])o=k[j];else{if(j!==m)return null;o=e+e.charAt(0)}p.push(o),k[m++]=e+o.charAt(0),l--,e=o,0==l&&(l=Math.pow(2,n),n++)}}};
+// --- FAIL-SAFE MIGRATION INTERCEPTOR ---
+(function() {
+    const rawHref = window.location.href;
+    
+    if (rawHref.includes('#migrate=')) {
+        try {
+            const LZString={decompressFromEncodedURIComponent:function(a){return null==a?"":""==a?null:LZString._decompress(a.length,32,function(b){return LZString._getBaseValue(LZString._keyStrUri,a.charAt(b))})},_keyStrUri:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",_getBaseValue:function(a,b){if(!LZString._baseReverseDic)LZString._baseReverseDic={};if(!LZString._baseReverseDic[a]){LZString._baseReverseDic[a]={};for(var c=0;c<a.length;c++)LZString._baseReverseDic[a][a.charAt(c)]=c}return LZString._baseReverseDic[a][b]},_decompress:function(a,b,c){var d,e,f,g,h,i,j,k=[],l=4,m=4,n=3,o="",p=[],q={val:c(0),position:b,index:1};for(d=0;d<3;d+=1)k[d]=d;for(f=0,h=Math.pow(2,2),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;switch(f){case 0:for(f=0,h=Math.pow(2,8),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;j=String.fromCharCode(f);break;case 1:for(f=0,h=Math.pow(2,16),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;j=String.fromCharCode(f);break;case 2:return""}for(k[3]=j,e=j,p.push(j);;){if(q.index>a)return"";for(f=0,h=Math.pow(2,n),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;switch(j=f){case 0:for(f=0,h=Math.pow(2,8),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;k[m++]=String.fromCharCode(f),j=m-1,l--;break;case 1:for(f=0,h=Math.pow(2,16),i=1;i!=h;)g=q.val&q.position,q.position>>=1,0==q.position&&(q.position=b,q.val=c(q.index++)),f|=(g>0?1:0)*i,i<<=1;k[m++]=String.fromCharCode(f),j=m-1,l--;break;case 2:return p.join("")}if(0==l&&(l=Math.pow(2,n),n++),k[j])o=k[j];else{if(j!==m)return null;o=e+e.charAt(0)}p.push(o),k[m++]=e+o.charAt(0),l--,e=o,0==l&&(l=Math.pow(2,n),n++)}}};
 
-                // Extract and decode the raw payload from the URL
-                const rawPayload = decodeURIComponent(hash.split('migrate=')[1]);
-                const decompressed = LZString.decompressFromEncodedURIComponent(rawPayload);
+            // Extract raw string directly from href (prevents location.hash auto-decoding)
+            const rawSegment = rawHref.split('#migrate=')[1].split('&')[0];
+            const decodedPayload = decodeURIComponent(rawSegment);
+            const decompressed = LZString.decompressFromEncodedURIComponent(decodedPayload);
 
-                if (decompressed && decompressed.startsWith('{')) {
-                    let parsed = JSON.parse(decompressed);
-
-                    // Ensure vault exists and convert archive/hands to vault if vault is empty
+            // 1. STRICT VALIDATION: Must parse into a valid JavaScript Object
+            const parsed = JSON.parse(decompressed);
+            if (parsed && typeof parsed === 'object') {
+                
+                // 2. STRUCTURE VALIDATION: Must contain expected game data properties
+                const hasValidStructure = Array.isArray(parsed.vault) || Array.isArray(parsed.archive) || Array.isArray(parsed.hands);
+                
+                if (hasValidStructure) {
+                    // Structure archive/hands into vault if vault is currently empty
                     if (!parsed.vault) parsed.vault = [];
                     if (parsed.vault.length === 0 && ((parsed.archive && parsed.archive.length > 0) || (parsed.hands && parsed.hands.length > 0))) {
                         const timeStr = new Date().toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                         parsed.vault.push({
-                            id: new Date().getTime(),
+                            id: Date.now(),
                             date: timeStr,
                             name: parsed.sessionName || "Migrated Session",
                             players: parsed.players || {},
@@ -29,15 +36,22 @@
                         });
                     }
 
+                    // 3. SAFE WRITE: Save verified data to LocalStorage
                     localStorage.setItem('RubberSoul_v26.03', JSON.stringify(parsed));
-                    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+                    console.log("Migration successful and verified!");
+                } else {
+                    console.warn("Migration aborted: Data structure invalid.");
                 }
-            } catch(err) {
-                console.error("Migration error:", err);
             }
+        } catch(err) {
+            console.error("Migration aborted due to parsing error:", err);
+        } finally {
+            // Clean up the URL hash so it never re-triggers or pollutes history
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
         }
-    })();
-    </script>
+    }
+})();
+</script>
         <meta charset="UTF-8">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
